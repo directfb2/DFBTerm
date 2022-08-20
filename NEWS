@@ -1,0 +1,23 @@
+0.9.1
+-----
+- Meson build system
+- Added DFBTERM_NO_SCROLLBAR environment variable
+
+0.8.15 (February 2 2007)
+------
+- Allow to paste using the right mouse button
+- Follow LiTE API changes
+- Scroll line-by-line when Shift key is pressed
+
+0.8.0 (February 28 2005)
+-----
+- Add scrolling via mouse wheel, scroll indicator is two lines thick
+- Added selection using mouse and copy-and-paste support
+- Set content and opacity blend mode to auto
+- Set default size to 100x30
+- Maintain a flipping region that is flushed after all updates are done
+- Use Misc-Fixed font
+
+0.0.0 (October 23 2002)
+-----
+- Original code by Denis Oliver Kropp
