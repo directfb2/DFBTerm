@@ -1,0 +1,11 @@
+commit 819dc1a6f78b3983223849972c4a7ba6871313dd
+Author: Nicolas Caramelli <caramelli.devel@gmail.com>
+Date:   Sat Aug 20 10:30:01 2022 +0200
+
+    Restore DirectFB Terminal Emulator
+
+commit d992f8d8355ced51d9951ea069f2ce9d640ac3bb
+Author: Nicolas Caramelli <caramelli.devel@gmail.com>
+Date:   Sat Aug 20 10:04:30 2022 +0200
+
+    Initial revision
