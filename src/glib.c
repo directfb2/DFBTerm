@@ -20,6 +20,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 void
 g_error( const char *fmt, ... )
@@ -35,6 +36,12 @@ void
 g_free( void *mem )
 {
      free( mem );
+}
+
+char *
+g_locale_to_utf8( const char *str, ... )
+{
+     return NULL;
 }
 
 void *
@@ -127,4 +134,43 @@ g_snprintf( char          *str,
      va_end( args );
 
      return len;
+}
+
+GString *
+g_string_new( const char *str )
+{
+     GString *string = malloc( sizeof(GString) );
+     int      len    = strlen( str );
+
+     string->str = malloc( len );
+     string->len = len;
+
+     strcpy( string->str, str );
+
+     return string;
+}
+
+GString *
+g_string_append_unichar( GString *string,
+                         char     c )
+{
+     return NULL;
+}
+
+char *
+g_string_free( GString  *string,
+               gboolean  free_segment )
+{
+     char *segment;
+
+     if (free_segment) {
+          free( string->str );
+          segment = NULL;
+     }
+     else
+          segment = string->str;
+
+     free( string );
+
+     return segment;
 }

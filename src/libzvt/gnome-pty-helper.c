@@ -45,7 +45,6 @@ extern char *strdup(const char *);
 #include <fcntl.h>
 #include <termios.h>
 #include <errno.h>
-#include <malloc.h>
 #include <termios.h>
 #include <pwd.h>
 #include <stdlib.h>
@@ -628,8 +627,10 @@ sanity_checks (void)
 
 		if (rlim.rlim_cur != RLIM_INFINITY &&
 		    rlim.rlim_cur < sensible_limits [i].value){
-			fprintf (stderr, "Living environment not ok\n");
-			exit (1);
+			if (setrlimit (sensible_limits [i].limit, &rlim) != 0) {
+				fprintf (stderr, "Living environment not ok\n");
+				exit (1);
+			}
 		}
 	}
 

@@ -1,3 +1,24 @@
+commit 1033b9979f25ede0d0e1ab9315650ac2bfc080f2
+Author: Nicolas Caramelli <caramelli.devel@gmail.com>
+Date:   Sat Sep 17 09:29:04 2022 +0200
+
+    Update to the latest version of libzvt
+
+commit 68f1498e32d98b175b28725564122d3fd9f4dbee
+Merge: d992f8d 073ce32
+Author: DirectFB2 <80045286+directfb2@users.noreply.github.com>
+Date:   Sat Aug 20 10:32:13 2022 +0200
+
+    Merge pull request #3 from caramelli/master
+    
+    Restore DirectFB Terminal Emulator
+
+commit 073ce324f7ffa5804d903656271413b890bf5a51
+Author: Nicolas Caramelli <caramelli.devel@gmail.com>
+Date:   Sat Aug 20 10:30:49 2022 +0200
+
+    Add ChangeLog
+
 commit 819dc1a6f78b3983223849972c4a7ba6871313dd
 Author: Nicolas Caramelli <caramelli.devel@gmail.com>
 Date:   Sat Aug 20 10:30:01 2022 +0200
