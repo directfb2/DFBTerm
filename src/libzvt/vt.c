@@ -1090,7 +1090,7 @@ vt_setmode(struct vt_em *vt, int on)
 	  vt->mode |= VTMODE_BLANK_CURSOR;
 	break;
       case 1047:		/* clear the screen if coming from the alt screen */
-	if (on==0 && (vt->mode&&VTMODE_ALTSCREEN))
+	if (on==0 && (vt->mode&VTMODE_ALTSCREEN))
 	  vt_clear_lines(vt, 0, vt->height);
 	/* falls through */
       case 47:
@@ -1108,6 +1108,19 @@ vt_setmode(struct vt_em *vt, int on)
 	if (on)
 	  vt->mode |= VTMODE_SEND_MOUSE_BOTH;
 	break;
+      case 1049:
+        /* here the application should save the screen and restore it as xterm \does!*/
+        vt_set_screen(vt, on?1:0);
+        if (on)
+          {
+            vt_save_cursor(vt);
+            vt_clear_lines(vt, 1, vt->height);
+          }
+        else
+          {
+            vt_restore_cursor(vt);
+          }
+        break;        
       case 1048:
 	if (on)
 	  vt_save_cursor(vt);
@@ -1342,7 +1355,8 @@ vt_set_text(struct vt_em *vt)
 {
   char *p;
   int i;
-
+  char *utf8;
+  
   if (vt->change_my_name) {
     p = strchr(vt->arg.txt.args_mem, ';');
     if (p) {
@@ -1368,8 +1382,43 @@ vt_set_text(struct vt_em *vt)
       default:			/* dont care, piss off */
 	return;
       }
-      /* Order changed to reflect the changed arg. order */
-      vt->change_my_name(vt->user_data, p, i);
+
+      /* XPROPERTY sets an XA_STRING in gnome-terminal and must
+       * therefore be Latin-1 unless gnome-terminal is on crack.
+       * We'll assume the title/iconname are in locale encoding, since
+       * AFAIK they aren't tagged for encoding. xterm seems to treat
+       * them as locale encoding.
+       */
+
+      if (i == VTTITLE_XPROPERTY)
+        {
+          const char *s;
+          GString *str;
+
+          str = g_string_new ("");
+          
+          s = p;
+          while (*s)
+            {
+              g_string_append_unichar (str, *s);
+              ++s;
+            }
+
+          utf8 = g_string_free (str, FALSE);
+        }
+      else
+        {
+          utf8 = g_locale_to_utf8 (p, -1, NULL, NULL, NULL);
+          /* utf8 will be NULL if the title was not valid
+           * in the locale encoding
+           */
+        }
+      
+      if (utf8)
+        {
+          vt->change_my_name (vt->user_data, utf8, i);
+          g_free (utf8);
+        }
     }
   }
 }

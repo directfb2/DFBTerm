@@ -917,6 +917,9 @@ void vt_fix_selection(struct _vtx *vx)
 	sx--;
       if (!vt_in_wordclass(vx, s->data[sx]))
 	sx++;
+      /* FIXME: workaround for bug #73284 */
+      if (sx == ex && sy == ey)
+        sx--;
     }
     d(printf("%d\n", sx));
 

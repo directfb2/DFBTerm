@@ -767,8 +767,8 @@ int main( int argc, char *argv[] )
      DFBRectangle          rect;
      int                   i;
      Term                 *term;
-     struct _vtx          *vtx;
      IDirectFBEventBuffer *event_buffer;
+     struct _vtx          *vtx = NULL;
 
      /* Parse command line */
      for (i = 1; i < argc; i++) {
@@ -863,9 +863,7 @@ int main( int argc, char *argv[] )
           ret = dfb->CreateFont( dfb, filename, &desc, &term->font );
           if (ret) {
                DirectFBError( "CreateFont() failed", ret );
-               D_FREE( term );
-               lite_close();
-               return 1;
+               goto out;
           }
      }
 
@@ -879,11 +877,8 @@ int main( int argc, char *argv[] )
      /* Create terminal window with scroll bar */
      rect.x = LITE_CENTER_HORIZONTALLY; rect.y = LITE_CENTER_VERTICALLY; rect.w = term->width + 2; rect.h = term->height;
      ret = lite_new_window( NULL, &rect, DWCAPS_ALPHACHANNEL, liteDefaultWindowTheme, "DFBTerm", &term->window );
-     if (ret) {
-          D_FREE( term );
-          lite_close();
-          return 1;
-     }
+     if (ret)
+          goto out;
 
      /* Setup the terminal window */
      term->window->step_x = term->CW;
@@ -933,12 +928,8 @@ int main( int argc, char *argv[] )
      vtx = vtx_new( termcols, termrows, term );
      if (!vtx) {
           DirectFBError( "Failed to create VTX object", DFB_FAILURE );
-          if (term->bar_surface)
-               term->bar_surface->Release( term->bar_surface );
-          term->surface->Release( term->surface );
-          term->font->Release( term->font );
-          D_FREE( term );
-          lite_close();
+          ret = DFB_FAILURE;
+          goto out;
      }
      else
           term->vtx = vtx;
@@ -972,14 +963,8 @@ int main( int argc, char *argv[] )
      }
      else if (i == -1) {
           DirectFBError( "Failed to start child process", DFB_FAILURE );
-          vtx_destroy( vtx );
-          if (term->bar_surface)
-               term->bar_surface->Release( term->bar_surface );
-          term->surface->Release( term->surface );
-          term->font->Release( term->font );
-          D_FREE( term );
-          lite_close();
-          return 1;
+          ret = DFB_FAILURE;
+          goto out;
      }
 
      direct_mutex_init( &term->lock );
@@ -1080,16 +1065,23 @@ int main( int argc, char *argv[] )
      direct_mutex_deinit( &term->lock );
 
      vt_closepty( &vtx->vt );
-     vtx_destroy( vtx );
+
+out:
+     if (vtx)
+          vtx_destroy( vtx );
 
      if (term->bar_surface)
           term->bar_surface->Release( term->bar_surface );
-     term->surface->Release( term->surface );
-     term->font->Release( term->font );
+
+     if (term->surface)
+          term->surface->Release( term->surface );
+
+     if (term->font)
+          term->font->Release( term->font );
 
      D_FREE( term );
 
      lite_close();
 
-     return 0;
+     return !ret ? 0 : 1;
 }

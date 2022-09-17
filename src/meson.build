@@ -39,7 +39,7 @@ dfbterm_pty_helper_sources = [
 executable('dfbterm',
            dfbterm_sources,
            include_directories: config_inc,
-           c_args: '-DGNOMESBINDIR="@0@"'.format(dfbtermlibexecdir),
+           c_args: '-DPTY_HELPER_DIR="@0@"'.format(dfbtermlibexecdir),
            dependencies: [libutil_dep, lite_dep],
            install: true)
 
@@ -52,6 +52,6 @@ executable('dfbterm-pty-helper',
 
 meson.add_install_script(join_paths(meson.source_root(), 'meson_symlink.sh'),
                          'dfbterm-pty-helper',
-                         join_paths(dfbtermlibexecdir, 'gnome-pty-helper-2'))
+                         join_paths(dfbtermlibexecdir, 'gnome-pty-helper'))
 
 endif

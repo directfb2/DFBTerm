@@ -244,7 +244,7 @@ get_ptys (int *master, int *slave, int update_wutmp)
 			close (helper_socket_fdpassing [0]);
 			close (helper_socket_fdpassing [1]);
 
-			execl (GNOMESBINDIR "/gnome-pty-helper-2", "gnome-pty-helper", NULL);
+			execl (PTY_HELPER_DIR "/gnome-pty-helper", "gnome-pty-helper", NULL);
 			exit (1);
 		} else {
 			close (helper_socket_fdpassing [1]);
