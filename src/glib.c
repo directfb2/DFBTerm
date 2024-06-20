@@ -60,7 +60,7 @@ void *
 g_realloc( void          *mem,
            unsigned long  size )
 {
-     return g_realloc( mem, size );
+     return realloc( mem, size );
 }
 
 GSList *
@@ -142,7 +142,7 @@ g_string_new( const char *str )
      GString *string = malloc( sizeof(GString) );
      int      len    = strlen( str );
 
-     string->str = malloc( len );
+     string->str = malloc( len + 1 );
      string->len = len;
 
      strcpy( string->str, str );
