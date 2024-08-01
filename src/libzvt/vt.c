@@ -1785,7 +1785,7 @@ vt_init(struct vt_em *vt, int width, int height)
   vt->childpid = -1;
   vt->keyfd = -1;
 
-  vt->this_line = (struct vt_line *)vt->lines.head;
+  memcpy(&vt->this_line, &vt->lines.head, sizeof(struct vt_line*));
 
   vt->scrollbacklines=0;
   vt->scrollbackoffset=0;
