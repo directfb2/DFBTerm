@@ -75,7 +75,7 @@ sigchld_handler (int signo)
 		if (waitpid (child->pid, &status, WNOHANG) == child->pid){
 			child->exit_status = status;
 			child->dead = 1;
-			write (child->fd, "D", 1);
+			(void)!write (child->fd, "D", 1);
 			return;
 		}
 	}
@@ -373,7 +373,7 @@ zvt_init_subshell (struct vt_em *vt, char *pty_name, int log)
 	} else {
 		close (slave_pty);
 
-		pipe(p);
+		(void)!pipe(p);
 
 		vt->msgfd = p [0];
 		
@@ -391,7 +391,7 @@ zvt_init_subshell (struct vt_em *vt, char *pty_name, int log)
 		pid = waitpid (vt->childpid, &status, WUNTRACED | WNOHANG);
 		if (pid == vt->childpid && child->pid >= 0){
 			child->pid = 0;
-			write (child->fd, "D", 1);
+			(void)!write (child->fd, "D", 1);
 			return -1;
 		}
 		
@@ -435,8 +435,8 @@ zvt_shutdown_subshell (struct vt_em *vt)
 	/* shutdown pty through helper */
 	if (vt->pty_tag) {
 		op = GNOME_PTY_CLOSE_PTY;
-		write (helper_socket_protocol [0], &op, sizeof (op));
-		write (helper_socket_protocol [0], &vt->pty_tag, sizeof (vt->pty_tag));
+		(void)!write (helper_socket_protocol [0], &op, sizeof (op));
+		(void)!write (helper_socket_protocol [0], &vt->pty_tag, sizeof (vt->pty_tag));
 		vt->pty_tag = NULL;
 	}
 

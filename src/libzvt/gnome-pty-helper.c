@@ -489,11 +489,11 @@ open_ptys (int utmp, int wtmp, int lastlog)
 	
 	/* drop privileges to the user level */
 #if defined(HAVE_SETEUID)
-	seteuid (pwent->pw_uid);
-	setegid (pwent->pw_gid);
+	(void)!seteuid (pwent->pw_uid);
+	(void)!setegid (pwent->pw_gid);
 #elif defined(HAVE_SETREUID)
-	setreuid (savedUid, pwent->pw_uid);
-	setregid (savedGid, pwent->pw_gid);
+	(void)!setreuid (savedUid, pwent->pw_uid);
+	(void)!setregid (savedGid, pwent->pw_gid);
 #else
 #error "No means to drop privileges! Huge security risk! Won't compile."
 #endif
@@ -502,25 +502,25 @@ open_ptys (int utmp, int wtmp, int lastlog)
 
 	/* Restore saved priveleges to root */
 #ifdef HAVE_SETEUID
-	seteuid (savedUid);
-	setegid (savedGid);
+	(void)!seteuid (savedUid);
+	(void)!setegid (savedGid);
 #elif defined(HAVE_SETREUID)
-	setreuid (pwent->pw_uid, savedUid);
-	setregid (pwent->pw_gid, savedGid);
+	(void)!setreuid (pwent->pw_uid, savedUid);
+	(void)!setregid (pwent->pw_gid, savedGid);
 #else
 #error "No means to raise privileges! Huge security risk! Won't compile."
 #endif
 	/* openpty() failed, reject request */
 	if (status == -1){
 		result = 0;
-		write (STDIN_FILENO, &result, sizeof (result));
+		(void)!write (STDIN_FILENO, &result, sizeof (result));
 		return 0;
 	}
 
 	/* a bit tricky, we re-do the part of the openpty()  */
 	/* that required root priveleges, and, hence, failed */
 	group_info = getgrnam ("tty");
-	fchown (slave_pty, getuid (), group_info ? group_info->gr_gid : -1);
+	(void)!fchown (slave_pty, getuid (), group_info ? group_info->gr_gid : -1);
 	fchmod (slave_pty, S_IRUSR | S_IWUSR | S_IWGRP);
 	/* It's too late to call revoke at this time... */
 	/* revoke(term_name); */
