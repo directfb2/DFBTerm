@@ -50,8 +50,11 @@ executable('dfbterm-pty-helper',
            install: true,
            install_dir: dfbtermlibexecdir)
 
-meson.add_install_script(join_paths(meson.source_root(), 'meson_symlink.sh'),
-                         'dfbterm-pty-helper',
-                         join_paths(dfbtermlibexecdir, 'gnome-pty-helper'))
+meson.add_install_script(join_paths(meson.project_source_root(), 'meson_setuid.sh'),
+                         join_paths(dfbtermlibexecdir, 'dfbterm-pty-helper'))
+
+install_symlink('gnome-pty-helper',
+                pointing_to: 'dfbterm-pty-helper',
+                install_dir: dfbtermlibexecdir)
 
 endif

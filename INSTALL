@@ -1,8 +1,13 @@
-DFBTerm is built using Meson and Ninja:
+DFBTerm is built using Meson.
 
-  $ meson build/
-  $ ninja -C build/
+First, configure the build:
 
-Finally, you can install DFBTerm using:
+  $ meson setup build/
 
-  $ ninja -C build/ install
+Start the build with:
+
+  $ meson compile -C build/
+
+And install DFBTerm using:
+
+  $ meson install -C build/
