@@ -30,6 +30,8 @@ g_error( const char *fmt, ... )
      va_start( args, fmt );
      vfprintf( stderr, fmt, args );
      va_end( args );
+
+     exit( 1 );
 }
 
 void
@@ -61,28 +63,6 @@ g_realloc( void          *mem,
            unsigned long  size )
 {
      return realloc( mem, size );
-}
-
-GSList *
-g_slist_alloc()
-{
-     GSList *list;
-
-     list = calloc( 1, sizeof(GSList) );
-
-     return list;
-}
-
-void
-g_slist_free( GSList *list )
-{
-     GSList *last;
-
-     while (list) {
-          last = list;
-          list = list->next;
-          free( last );
-     }
 }
 
 GSList *

@@ -43,8 +43,6 @@ void    *g_malloc               ( unsigned long size );
 void    *g_malloc0              ( unsigned long size );
 #define  g_new(type, n)         ((type*) g_malloc( sizeof(type) * (n) ))
 void    *g_realloc              ( void *mem, unsigned long size );
-GSList  *g_slist_alloc          ( void );
-void     g_slist_free           ( GSList *list );
 GSList  *g_slist_prepend        ( GSList *list, void *data );
 GSList  *g_slist_remove         ( GSList *list, void *data );
 int      g_snprintf             ( char *str, unsigned long size, const char *fmt, ... );

@@ -467,7 +467,7 @@ static void term_handle_key( Term *term, DFBWindowEvent *evt )
 
      if (evt->modifiers == DIMM_CONTROL && evt->key_symbol >= DIKS_SMALL_A && evt->key_symbol <= DIKS_SMALL_Z) {
           char c = evt->key_symbol - DIKS_SMALL_A + 1;
-          vt_writechild (&vtx->vt, &c, 1);
+          vt_writechild( &vtx->vt, &c, 1 );
      }
      else if ((evt->key_symbol > 9 && evt->key_symbol < 127) || (evt->key_symbol > 127 && evt->key_symbol < 256)) {
           char c = evt->key_symbol;
@@ -625,7 +625,7 @@ static void term_flush_flip( Term *term )
 {
      if (term->flip_pending) {
           term->surface->Flip( term->surface, &term->flip_region,
-                               getenv( "LITE_WINDOW_DOUBLEBUFFER" ) ? DSFLIP_BLIT: DSFLIP_NONE );
+                               getenv( "LITE_WINDOW_DOUBLEBUFFER" ) ? DSFLIP_BLIT : DSFLIP_NONE );
 
           term->flip_pending = DFB_FALSE;
      }
@@ -636,7 +636,7 @@ static void term_flush_flip( Term *term )
 static void *term_update( DirectThread *thread, void *arg )
 {
      Term        *term = arg;
-     struct _vtx *vtx = term->vtx;
+     struct _vtx *vtx  = term->vtx;
 
      while (1) {
           int            count, update = 0;
@@ -695,8 +695,8 @@ static int on_window_resize( LiteWindow *window, int width, int height )
 {
      DFBRectangle  rect;
      int           termcols, termrows;
-     Term         *term    = LITE_BOX(window)->user_data;;
-     struct _vtx  *vtx = term->vtx;
+     Term         *term = LITE_BOX(window)->user_data;
+     struct _vtx  *vtx  = term->vtx;
 
      term->in_resize = DFB_TRUE;
 
