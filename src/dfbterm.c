@@ -193,6 +193,8 @@ static int tsm_draw_cell( struct tsm_screen *screen, uint64_t id, const uint32_t
      return 0;
 }
 
+static void term_update_scrollbar( Term *term );
+
 static void shl_pty_input( struct shl_pty *pty, void *user_data, char *buffer, size_t count )
 {
      Term *term = user_data;
@@ -202,6 +204,8 @@ static void shl_pty_input( struct shl_pty *pty, void *user_data, char *buffer, s
      tsm_vte_input( term->vte, buffer, count );
 
      term->age = tsm_screen_draw( term->screen, tsm_draw_cell, term );
+
+     term_update_scrollbar( term );
 
      term_flush_flip( term );
 
@@ -334,12 +338,11 @@ static void vt_scroll_area( void *user_data, int firstrow, int count, int offset
 
 static int vt_cursor_state( void *user_data, int state )
 {
-     Term        *term = user_data;
-     struct _vtx *vtx  = term->vtx;
+     Term *term = user_data;
 
      /* Only call vt_draw_cursor() if the state has changed */
      if (term->cursor_state ^ state) {
-          vt_draw_cursor( vtx, state );
+          vt_draw_cursor( term->vtx, state );
           term->cursor_state = state;
      }
 
@@ -352,18 +355,22 @@ static int vt_cursor_state( void *user_data, int state )
 
 static void term_update_scrollbar( Term *term )
 {
-#ifndef USE_LIBTSM
-     int          termrows, start, end, total;
-     struct _vtx *vtx = term->vtx;
+     int termrows, start, end, total;
 
      if (!term->bar_surface)
           return;
 
      termrows = term->height / term->CH;
 
-     total = vtx->vt.scrollbacklines + termrows;
-     start = (vtx->vt.scrollbacklines + vtx->vt.scrollbackoffset) * term->height / total;
-     end   = (vtx->vt.scrollbacklines + vtx->vt.scrollbackoffset + termrows) * term->height / total;
+#ifdef USE_LIBTSM
+     total = tsm_screen_sb_get_line_count( term->screen ) + termrows;
+     start = tsm_screen_sb_get_line_pos( term->screen ) * term->height / total;
+     end   = (tsm_screen_sb_get_line_pos( term->screen ) + termrows) * term->height / total;
+#else
+     total = term->vtx->vt.scrollbacklines + termrows;
+     start = (term->vtx->vt.scrollbacklines + term->vtx->vt.scrollbackoffset) * term->height / total;
+     end   = (term->vtx->vt.scrollbacklines + term->vtx->vt.scrollbackoffset + termrows) * term->height / total;
+#endif
 
      if (!term->in_resize && start == term->bar_start && end == term->bar_end)
           return;
@@ -389,7 +396,6 @@ static void term_update_scrollbar( Term *term )
 
      term->bar_start = start;
      term->bar_end   = end;
-#endif
 }
 
 static void term_handle_button( Term *term, DFBWindowEvent *evt )
@@ -629,7 +635,10 @@ static void term_handle_key( Term *term, DFBWindowEvent *evt )
           }
 
      if (evt->key_symbol != DIKS_ALT && evt->key_symbol != DIKS_CONTROL && evt->key_symbol != DIKS_SHIFT)
-          tsm_vte_handle_keyboard( term->vte, keysym, 0, mods, evt->key_symbol );
+          if (tsm_vte_handle_keyboard( term->vte, keysym, 0, mods, evt->key_symbol )) {
+               tsm_screen_sb_reset( term->screen );
+               term_update_scrollbar( term );
+          }
 #else
      if (evt->modifiers == DIMM_CONTROL && evt->key_symbol >= DIKS_SMALL_A && evt->key_symbol <= DIKS_SMALL_Z) {
           char c = evt->key_symbol - DIKS_SMALL_A + 1;
@@ -773,7 +782,14 @@ static void term_handle_wheel( Term *term, DFBWindowEvent *evt )
 
 static void term_scroll( Term *term, int scroll )
 {
-#ifndef USE_LIBTSM
+#ifdef USE_LIBTSM
+     if (scroll < 0)
+          tsm_screen_sb_up( term->screen, -scroll );
+     else
+          tsm_screen_sb_down( term->screen, scroll );
+
+     term->age = tsm_screen_draw( term->screen, tsm_draw_cell, term );
+#else
      term->vtx->vt.scrollbackoffset += scroll;
 
      if (term->vtx->vt.scrollbackoffset > 0)
@@ -784,9 +800,9 @@ static void term_scroll( Term *term, int scroll )
      vt_update( term->vtx, UPDATE_SCROLLBACK );
 
      vt_cursor_state( term, 1 );
+#endif
 
      term_update_scrollbar( term );
-#endif
 }
 
 /**********************************************************************************************************************/
