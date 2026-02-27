@@ -766,9 +766,18 @@ static void term_handle_key( Term *term, DFBWindowEvent *evt )
 
 static void term_handle_wheel( Term *term, DFBWindowEvent *evt )
 {
-#ifndef USE_LIBTSM
      int i;
 
+#ifdef USE_LIBTSM
+     if (evt->step > 0) {
+          for (i = 0; i < evt->step; i++)
+               tsm_vte_handle_keyboard( term->vte, 0xff52, 0, 0, 0 );
+     }
+     else {
+          for (i = 0; i > evt->step; i--)
+               tsm_vte_handle_keyboard( term->vte, 0xff54, 0, 0, 0 );
+     }
+#else
      if (evt->step > 0) {
           for (i = 0; i < evt->step; i++)
                vt_writechild( &term->vtx->vt, "\033[A", 3 );
