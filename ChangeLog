@@ -1,3 +1,174 @@
+commit ede05ec2a4c086d2c3febd29c65bb13c14a8c450
+Author: Nicolas Caramelli <caramelli.devel@gmail.com>
+Date:   Sun Mar 1 12:52:47 2026 +0100
+
+    Set TERM to xterm
+
+commit 352dc2bfe6583e423b74c372bc38c05141307a43
+Merge: d9ee577 f3ae5d1
+Author: DirectFB2 <80045286+directfb2@users.noreply.github.com>
+Date:   Sun Mar 1 12:17:28 2026 +0100
+
+    Merge pull request #16 from caramelli/master
+    
+    libtsm terminal emulation backend: implement selection support for copy-and-paste
+
+commit f3ae5d1b972cda77d2be1d7450831a1d114885a7
+Author: Nicolas Caramelli <caramelli.devel@gmail.com>
+Date:   Sun Mar 1 12:06:36 2026 +0100
+
+    libtsm terminal emulation backend: add selection handling to enable copy-and-paste operations
+
+commit d9ee577e39553c1237111429a441b28b0848d874
+Merge: ee4de14 9e93b8b
+Author: DirectFB2 <80045286+directfb2@users.noreply.github.com>
+Date:   Fri Feb 27 08:07:50 2026 +0100
+
+    Merge pull request #15 from caramelli/master
+    
+    libtsm terminal emulation backend: add implementation for term_handle_wheel()
+
+commit 9e93b8ba5ab550a0dd18bc3a88eb526abf6909ae
+Author: Nicolas Caramelli <caramelli.devel@gmail.com>
+Date:   Fri Feb 27 08:03:41 2026 +0100
+
+    libtsm terminal emulation backend: forward mouse wheel events as cursor navigation input in term_handle_wheel()
+
+commit ee4de14863b9291fdde2cffcfd3587d2f4b3ff00
+Merge: 363572b 39174ff
+Author: DirectFB2 <80045286+directfb2@users.noreply.github.com>
+Date:   Sun Feb 22 22:20:16 2026 +0100
+
+    Merge pull request #14 from caramelli/master
+    
+    Add scrollback support when using libtsm terminal emulation backend
+
+commit 39174ffeb38b111bdcd0e2e5cad2502f4f557ce5
+Author: Nicolas Caramelli <caramelli.devel@gmail.com>
+Date:   Sun Feb 22 22:17:15 2026 +0100
+
+    Add scrollback support when using libtsm terminal emulation backend
+
+commit 363572be10333f15a3889f628b46f1de5fd2160f
+Merge: 616f40a 5fcc4de
+Author: DirectFB2 <80045286+directfb2@users.noreply.github.com>
+Date:   Sun Feb 22 15:43:20 2026 +0100
+
+    Merge pull request #13 from caramelli/master
+    
+    Add libtsm support as terminal emulation backend
+
+commit 5fcc4de90abbcdfbaef1efcaeadd611200a39074
+Author: Nicolas Caramelli <caramelli.devel@gmail.com>
+Date:   Sun Feb 22 15:38:42 2026 +0100
+
+    Add libtsm support as terminal emulation backend
+
+commit 616f40a4b846f65f14c0446c82ddfe2f582c081e
+Merge: 3642f00 d9e4820
+Author: DirectFB2 <80045286+directfb2@users.noreply.github.com>
+Date:   Sat Feb 21 22:22:56 2026 +0100
+
+    Merge pull request #12 from caramelli/master
+    
+    Remove unnecessary Clear() during window resize
+
+commit d9e48206003597f0a1cdef2a3410a0b61db6d3c5
+Author: Nicolas Caramelli <caramelli.devel@gmail.com>
+Date:   Sat Feb 21 21:56:54 2026 +0100
+
+    Remove unnecessary Clear() during window resize
+
+commit 3642f00b75c6e2a042082d22c663b443e79bf218
+Merge: ab50439 6df0e41
+Author: DirectFB2 <80045286+directfb2@users.noreply.github.com>
+Date:   Fri Feb 20 22:21:08 2026 +0100
+
+    Merge pull request #11 from caramelli/master
+    
+    Make g_error() terminate the program
+
+commit 6df0e41aa7d32126042fb4045f0341542d89c17f
+Author: Nicolas Caramelli <caramelli.devel@gmail.com>
+Date:   Fri Feb 20 22:17:40 2026 +0100
+
+    Make g_error() terminate the program
+
+commit ab50439677409d14bb31f706ea9ffc3468fc4dc7
+Merge: b89a5f0 34d2349
+Author: DirectFB2 <80045286+directfb2@users.noreply.github.com>
+Date:   Sun Feb 15 07:01:06 2026 +0100
+
+    Merge pull request #10 from caramelli/master
+    
+    Set SUID to dfbterm-pty-helper
+
+commit 34d234973fa2027aefa326ee8a83284f3ad76e26
+Author: Nicolas Caramelli <caramelli.devel@gmail.com>
+Date:   Sun Feb 15 06:56:20 2026 +0100
+
+    Set SUID to dfbterm-pty-helper
+
+commit b89a5f0c98a56216a9ef3a6612b61231a13de30d
+Merge: 8a1e1b7 dd16184
+Author: DirectFB2 <80045286+directfb2@users.noreply.github.com>
+Date:   Sat Aug 3 14:27:17 2024 +0200
+
+    Merge pull request #8 from stefan11111/master
+    
+    fix -Wunused-result warnings
+
+commit dd16184e6d9a5693f9878bc3ef8b76007ef08e5a
+Author: stefan11111 <stefan11111@shitposting.expert>
+Date:   Fri Aug 2 12:23:18 2024 +0300
+
+    fix -Wunused-result warnings
+
+commit 8a1e1b751df4dd09fae2f9352e7c3717e11c4204
+Merge: 0e78750 4191e0a
+Author: DirectFB2 <80045286+directfb2@users.noreply.github.com>
+Date:   Fri Aug 2 11:11:38 2024 +0200
+
+    Merge pull request #7 from stefan11111/master
+    
+    fixes: https://github.com/directfb2/DFBTerm/issues/5
+
+commit 4191e0a268027ff8f4d26c8ba7ae45c9f474ff36
+Author: stefan11111 <stefan11111@shitposting.expert>
+Date:   Thu Aug 1 14:59:56 2024 +0300
+
+    fixes: https://github.com/directfb2/DFBTerm/issues/5
+
+commit 0e78750b5e58655d521da54540dc0a9bdca2f840
+Merge: c6e3d58 ac453e6
+Author: DirectFB2 <80045286+directfb2@users.noreply.github.com>
+Date:   Thu Jun 20 18:35:07 2024 +0200
+
+    Merge pull request #6 from caramelli/master
+    
+    Fix allocations in glib snippet
+
+commit ac453e664e8feee2562c84a0af90853018948a6f
+Author: Nicolas Caramelli <caramelli.devel@gmail.com>
+Date:   Thu Jun 20 18:31:33 2024 +0200
+
+    Fix allocations in glib snippet
+
+commit c6e3d58e7b3a1a789bde9afd172d143a5610a313
+Merge: 68f1498 070eee6
+Author: DirectFB2 <80045286+directfb2@users.noreply.github.com>
+Date:   Sat Sep 17 09:29:41 2022 +0200
+
+    Merge pull request #4 from caramelli/master
+    
+    Update to the latest version of libzvt
+
+commit 070eee6ef1c5745c88b60a868873e2b44080ae47
+Author: Nicolas Caramelli <caramelli.devel@gmail.com>
+Date:   Sat Sep 17 09:29:34 2022 +0200
+
+    Update ChangeLog
+
 commit 1033b9979f25ede0d0e1ab9315650ac2bfc080f2
 Author: Nicolas Caramelli <caramelli.devel@gmail.com>
 Date:   Sat Sep 17 09:29:04 2022 +0200
