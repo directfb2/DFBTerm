@@ -1251,7 +1251,7 @@ int main( int argc, char *argv[] )
                name  = "sh";
           }
 
-          setenv( "TERM", "linux", 1 );
+          setenv( "TERM", "xterm", 1 );
 
           execl( shell, name, "-", NULL );
 
