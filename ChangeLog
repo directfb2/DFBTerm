@@ -1,3 +1,24 @@
+commit 81b5be4635bac684b244265234c7b4925b0f3092
+Author: Nicolas Caramelli <caramelli.devel@gmail.com>
+Date:   Sun Mar 1 18:24:47 2026 +0100
+
+    Replace gnome-pty-helper with dfbterm-pty-helper in the bundled libzvt source
+
+commit f39b246b69c74b617a80d9f2729d335df031bef6
+Merge: 352dc2b 718f614
+Author: DirectFB2 <80045286+directfb2@users.noreply.github.com>
+Date:   Sun Mar 1 18:00:08 2026 +0100
+
+    Merge pull request #17 from caramelli/master
+    
+    Set TERM to xterm
+
+commit 718f614e847573dfc30d5f2a023d5ba804521c36
+Author: Nicolas Caramelli <caramelli.devel@gmail.com>
+Date:   Sun Mar 1 12:53:42 2026 +0100
+
+    Update ChangeLog
+
 commit ede05ec2a4c086d2c3febd29c65bb13c14a8c450
 Author: Nicolas Caramelli <caramelli.devel@gmail.com>
 Date:   Sun Mar 1 12:52:47 2026 +0100
