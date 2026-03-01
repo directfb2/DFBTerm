@@ -14,8 +14,7 @@
 #  with this program; if not, write to the Free Software Foundation, Inc.,
 #  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 
-project('DFBTerm', 'c',
-        meson_version: '>= 0.61')
+project('DFBTerm', 'c')
 
 dfbtermdatadir    = join_paths(get_option('prefix'), get_option('datadir'),    'dfbterm')
 dfbtermlibexecdir = join_paths(get_option('prefix'), get_option('libexecdir'), 'dfbterm')
