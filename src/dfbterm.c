@@ -56,6 +56,8 @@ typedef struct {
      int                         pty_bridge;
      pid_t                       pid;
      tsm_age_t                   age;
+     int                         selected;
+     int                         selectiontype;
 #else
      struct _vtx                *vtx;
 #endif
@@ -72,11 +74,16 @@ typedef struct {
      DFBBoolean                  in_resize;
 
      struct timeval              last_click;
-
-     DFBInputDeviceModifierMask  modifiers;
 } Term;
 
-#ifndef USE_LIBTSM
+#ifdef USE_LIBTSM
+
+#define VT_SELTYPE_NONE  0
+#define VT_SELTYPE_CHAR  1
+#define VT_SELTYPE_WORD  2
+#define VT_SELTYPE_MOVED 0x2000
+
+#else
 
 /* The first 16 values are the ANSI colors, the last two are the default foreground and default background */
 
@@ -400,34 +407,10 @@ static void term_update_scrollbar( Term *term )
 
 static void term_handle_button( Term *term, DFBWindowEvent *evt )
 {
-#ifndef USE_LIBTSM
-     int          button;
-     int          down;
-     long long    diff;
-     int          qual = 0;
-
-     switch (evt->button) {
-          case DIBI_LEFT:
-               button = 1;
-               break;
-          case DIBI_MIDDLE:
-               button = 2;
-               break;
-          case DIBI_RIGHT:
-               button = 3;
-               break;
-          default:
-               return;
-     }
+     int       down;
+     long long diff;
 
      down = (evt->type == DWET_BUTTONDOWN);
-
-     if (term->modifiers & DIMM_SHIFT)
-          qual |= 1;
-     if (term->modifiers & DIMM_CONTROL)
-          qual |= 4;
-     if (term->modifiers & DIMM_ALT)
-          qual |= 8;
 
      if (!getenv( "LITE_NO_FRAME" )) {
           evt->x -= 5;
@@ -437,20 +420,55 @@ static void term_handle_button( Term *term, DFBWindowEvent *evt )
      evt->x /= term->CW;
      evt->y /= term->CH;
 
+#ifndef USE_LIBTSM
      if (term->vtx->selectiontype == VT_SELTYPE_NONE) {
-          if (!(evt->modifiers & DIMM_SHIFT) && vt_report_button( &term->vtx->vt, down, button, qual, evt->x, evt->y ))
+          int button;
+          int qual               = 0;
+          int skip_report_button = 0;
+
+          switch (evt->button) {
+               case DIBI_LEFT:
+                    button = 1;
+                    break;
+               case DIBI_MIDDLE:
+                    button = 2;
+                    break;
+               case DIBI_RIGHT:
+                    button = 3;
+                    break;
+               default:
+                    return;
+          }
+
+          if (!getenv("DFBTERM_ALWAYS_REPORT_BUTTON"))
+               skip_report_button = evt->modifiers & DIMM_SHIFT;
+          else if (evt->modifiers & DIMM_SHIFT)
+               qual |= 1;
+          if (evt->modifiers & DIMM_CONTROL)
+               qual |= 4;
+          if (evt->modifiers & DIMM_ALT)
+               qual |= 8;
+
+          if (!skip_report_button && vt_report_button( &term->vtx->vt, down, button, qual, evt->x, evt->y ))
                return;
      }
-
-     evt->y += term->vtx->vt.scrollbackoffset;
+#endif
 
      if (down) {
+#ifdef USE_LIBTSM
+          if (term->selected) {
+               tsm_screen_selection_reset( term->screen );
+               term->age = tsm_screen_draw( term->screen, tsm_draw_cell, term );
+               term->selected = 0;
+          }
+#else
           if (term->vtx->selected) {
                term->vtx->selstartx = term->vtx->selendx;
                term->vtx->selstarty = term->vtx->selendy;
                vt_draw_selection( term->vtx );
                term->vtx->selected = 0;
           }
+#endif
 
           switch (evt->button) {
                case DIBI_LEFT:
@@ -459,129 +477,167 @@ static void term_handle_button( Term *term, DFBWindowEvent *evt )
                     diff = (evt->timestamp.tv_sec - term->last_click.tv_sec) * 1000000 +
                            (evt->timestamp.tv_usec - term->last_click.tv_usec);
 
+#ifdef USE_LIBTSM
+                    if ((evt->modifiers & DIMM_CONTROL) || diff < 400000) {
+                         term->selectiontype = VT_SELTYPE_WORD | VT_SELTYPE_MOVED;
+                         tsm_screen_selection_word( term->screen, evt->x, evt->y );
+                    }
+                    else {
+                         term->selectiontype = VT_SELTYPE_CHAR;
+                         tsm_screen_selection_start( term->screen, evt->x, evt->y );
+                    }
+
+                    term->selected = 1;
+
+                    term->age = tsm_screen_draw( term->screen, tsm_draw_cell, term );
+#else
                     if ((evt->modifiers & DIMM_CONTROL) || diff < 400000)
                          term->vtx->selectiontype = VT_SELTYPE_WORD | VT_SELTYPE_MOVED;
                     else
                          term->vtx->selectiontype = VT_SELTYPE_CHAR;
 
-                    term->vtx->selectiontype |= VT_SELTYPE_BYSTART;
+                    term->vtx->selected = 1;
 
-                    term->vtx->selstartx = evt->x;
-                    term->vtx->selstarty = evt->y;
-                    term->vtx->selendx   = evt->x;
-                    term->vtx->selendy   = evt->y;
-
-                    if (!term->vtx->selected) {
-                         term->vtx->selstartxold = evt->x;
-                         term->vtx->selstartyold = evt->y;
-                         term->vtx->selendxold   = evt->x;
-                         term->vtx->selendyold   = evt->y;
-                         term->vtx->selected = 1;
-                    }
+                    term->vtx->selstartx = term->vtx->selstartxold = evt->x;
+                    term->vtx->selstarty = term->vtx->selstartyold = evt->y + term->vtx->vt.scrollbackoffset;
+                    term->vtx->selendx   = term->vtx->selendxold   = evt->x;
+                    term->vtx->selendy   = term->vtx->selendyold   = evt->y + term->vtx->vt.scrollbackoffset;
 
                     vt_fix_selection( term->vtx );
                     vt_draw_selection( term->vtx );
+#endif
 
                     term->last_click = evt->timestamp;
                     break;
 
                case DIBI_MIDDLE:
                case DIBI_RIGHT: {
-                         unsigned int  size;
-                         char         *mime_type;
-                         void         *clip_data;
-                         IDirectFB    *dfb = lite_get_dfb_interface();
+                    unsigned int  size;
+                    char         *mime_type;
+                    void         *clip_data;
+                    IDirectFB    *dfb = lite_get_dfb_interface();
 
-                         if (dfb->GetClipboardData( dfb, &mime_type, &clip_data, &size ))
-                              break;
+                    if (dfb->GetClipboardData( dfb, &mime_type, &clip_data, &size ))
+                         break;
 
-                         if (!strcmp( mime_type, "text/plain" )) {
-                              unsigned int  i;
-                              char         *buffer = clip_data;
+                    if (!strcmp( mime_type, "text/plain" )) {
+#ifdef USE_LIBTSM
+                         unsigned int  i;
+                         unsigned int  len    = 0;
+                         char         *buffer = D_MALLOC( size );
 
-                              for (i = 0; i < size; i++)
-                                   if (buffer[i] == '\n')
-                                        buffer[i] = '\r';
-
-                              vt_writechild( &term->vtx->vt, buffer, size );
-
-                              if (term->vtx->vt.scrollbackoffset) {
-                                   term->vtx->vt.scrollbackoffset = 0;
-
-                                   vt_update( term->vtx, UPDATE_SCROLLBACK );
-
-                                   vt_cursor_state( term, 1 );
-
-                                   term_update_scrollbar( term );
-                              }
+                         for (i = 0; i < size; i++) {
+                              char c = ((char*) clip_data)[i];
+                              if (!c)
+                                   continue;
+                              if (c == '\n')
+                                   c = '\r';
+                              buffer[len++] = c;
                          }
 
-                         D_FREE( clip_data );
-                         D_FREE( mime_type );
-                         break;
+                         tsm_vte_write( term->vte, buffer, len, term );
+
+                         D_FREE( buffer );
+
+                         tsm_screen_sb_reset( term->screen );
+
+                         term_update_scrollbar( term );
+#else
+                         unsigned int  i;
+                         char         *buffer = clip_data;
+
+                         for (i = 0; i < size; i++)
+                              if (buffer[i] == '\n')
+                                   buffer[i] = '\r';
+
+                         vt_writechild( &term->vtx->vt, buffer, size );
+
+                         if (term->vtx->vt.scrollbackoffset) {
+                              term->vtx->vt.scrollbackoffset = 0;
+
+                              vt_update( term->vtx, UPDATE_SCROLLBACK );
+
+                              vt_cursor_state( term, 1 );
+
+                              term_update_scrollbar( term );
+                         }
+#endif
                     }
+
+                    D_FREE( clip_data );
+                    D_FREE( mime_type );
+                    break;
+               }
 
                default:
                     break;
           }
      }
      else {
-          if (term->vtx->selectiontype & VT_SELTYPE_BYSTART) {
-               term->vtx->selendx = evt->x + 1;
-               term->vtx->selendy = evt->y;
-          }
-          else {
-               term->vtx->selstartx = evt->x;
-               term->vtx->selstarty = evt->y;
-          }
-
+#ifdef USE_LIBTSM
+          if (term->selectiontype & VT_SELTYPE_MOVED) {
+#else
           if (term->vtx->selectiontype & VT_SELTYPE_MOVED) {
+#endif
                int        size;
                char      *clip_data;
                IDirectFB *dfb = lite_get_dfb_interface();
 
-               vt_fix_selection( term->vtx );
-               vt_draw_selection( term->vtx );
-
+#ifdef USE_LIBTSM
+               size = tsm_screen_selection_copy( term->screen, &clip_data );
+               if (size > 0) {
+                    dfb->SetClipboardData( dfb, "text/plain", clip_data, size, NULL );
+                    free( clip_data );
+               }
+#else
                clip_data = vt_get_selection( term->vtx, 1, &size );
-
-               dfb->SetClipboardData( dfb, "text/plain", clip_data, size, NULL );
+               if (clip_data) {
+                    dfb->SetClipboardData( dfb, "text/plain", clip_data, size, NULL );
+                    vt_clear_selection( term->vtx );
+               }
+#endif
           }
 
+#ifdef USE_LIBTSM
+          term->selectiontype = VT_SELTYPE_NONE;
+#else
           term->vtx->selectiontype = VT_SELTYPE_NONE;
+#endif
 
           term->window->window->UngrabPointer( term->window->window );
      }
-#endif
 }
 
 static void term_handle_motion( Term *term, DFBWindowEvent *evt )
 {
-#ifndef USE_LIBTSM
-     if (!getenv( "LITE_NO_FRAME" )) {
-          evt->x -= 5;
-          evt->y -= 23;
-     }
-
-     evt->x /= term->CW;
-     evt->y /= term->CH;
-
+#ifdef USE_LIBTSM
+     if (term->selectiontype != VT_SELTYPE_NONE) {
+#else
      if (term->vtx->selectiontype != VT_SELTYPE_NONE) {
-          if (term->vtx->selectiontype & VT_SELTYPE_BYSTART) {
-               term->vtx->selendx = evt->x + 1;
-               term->vtx->selendy = evt->y + term->vtx->vt.scrollbackoffset;
-          }
-          else {
-               term->vtx->selstartx = evt->x;
-               term->vtx->selstarty = evt->y + term->vtx->vt.scrollbackoffset;
+#endif
+          if (!getenv( "LITE_NO_FRAME" )) {
+               evt->x -= 5;
+               evt->y -= 23;
           }
 
+          evt->x /= term->CW;
+          evt->y /= term->CH;
+
+#ifdef USE_LIBTSM
+          term->selectiontype |= VT_SELTYPE_MOVED;;
+
+          tsm_screen_selection_target( term->screen, evt->x, evt->y );
+          term->age = tsm_screen_draw( term->screen, tsm_draw_cell, term );
+#else
           term->vtx->selectiontype |= VT_SELTYPE_MOVED;
+
+          term->vtx->selendx = evt->x + 1;
+          term->vtx->selendy = evt->y + term->vtx->vt.scrollbackoffset;
 
           vt_fix_selection( term->vtx );
           vt_draw_selection( term->vtx );
-     }
 #endif
+     }
 }
 
 static void term_handle_key( Term *term, DFBWindowEvent *evt )
@@ -618,8 +674,9 @@ static void term_handle_key( Term *term, DFBWindowEvent *evt )
      };
 
      int      i;
-     uint32_t mods   = 0;
      uint32_t keysym = evt->key_symbol;
+     uint32_t mods   = 0;
+     uint32_t c      = TSM_VTE_INVALID;
 
      if (evt->modifiers & DIMM_ALT)
           mods |= TSM_ALT_MASK;
@@ -634,11 +691,23 @@ static void term_handle_key( Term *term, DFBWindowEvent *evt )
                break;
           }
 
+     if ((evt->key_symbol > 9 && evt->key_symbol < 127) || (evt->key_symbol > 127 && evt->key_symbol < 256))
+          c = evt->key_symbol;
+
      if (evt->key_symbol != DIKS_ALT && evt->key_symbol != DIKS_CONTROL && evt->key_symbol != DIKS_SHIFT)
-          if (tsm_vte_handle_keyboard( term->vte, keysym, 0, mods, evt->key_symbol )) {
-               tsm_screen_sb_reset( term->screen );
-               term_update_scrollbar( term );
-          }
+          if (!tsm_vte_handle_keyboard( term->vte, keysym, 0, mods, c ))
+               return;
+
+     if (term->selected) {
+          tsm_screen_selection_reset( term->screen );
+          term->selected = 0;
+     }
+
+     tsm_screen_sb_reset( term->screen );
+
+     term->age = tsm_screen_draw( term->screen, tsm_draw_cell, term );
+
+     term_update_scrollbar( term );
 #else
      if (evt->modifiers == DIMM_CONTROL && evt->key_symbol >= DIKS_SMALL_A && evt->key_symbol <= DIKS_SMALL_Z) {
           char c = evt->key_symbol - DIKS_SMALL_A + 1;
@@ -768,25 +837,22 @@ static void term_handle_wheel( Term *term, DFBWindowEvent *evt )
 {
      int i;
 
+     if (evt->step > 0) {
+          for (i = 0; i < evt->step; i++)
 #ifdef USE_LIBTSM
-     if (evt->step > 0) {
-          for (i = 0; i < evt->step; i++)
                tsm_vte_handle_keyboard( term->vte, 0xff52, 0, 0, 0 );
-     }
-     else {
-          for (i = 0; i > evt->step; i--)
-               tsm_vte_handle_keyboard( term->vte, 0xff54, 0, 0, 0 );
-     }
 #else
-     if (evt->step > 0) {
-          for (i = 0; i < evt->step; i++)
                vt_writechild( &term->vtx->vt, "\033[A", 3 );
+#endif
      }
      else {
           for (i = 0; i > evt->step; i--)
+#ifdef USE_LIBTSM
+               tsm_vte_handle_keyboard( term->vte, 0xff54, 0, 0, 0 );
+#else
                vt_writechild( &term->vtx->vt, "\033[B", 3 );
-     }
 #endif
+     }
 }
 
 static void term_scroll( Term *term, int scroll )
@@ -1244,7 +1310,6 @@ int main( int argc, char *argv[] )
                          term_handle_motion( term, &evt );
                          break;
                     case DWET_KEYDOWN:
-                         term->modifiers = evt.modifiers;
                          if (evt.modifiers & DIMM_SHIFT) {
                               switch (evt.key_symbol) {
                                    case DIKS_CURSOR_UP:
@@ -1266,9 +1331,6 @@ int main( int argc, char *argv[] )
                          }
                          else
                               term_handle_key( term, &evt );
-                         break;
-                    case DWET_KEYUP:
-                         term->modifiers = evt.modifiers;
                          break;
                     case DWET_WHEEL:
                          if (evt.modifiers & DIMM_CONTROL)
