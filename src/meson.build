@@ -74,10 +74,6 @@ executable('dfbterm-pty-helper',
            install: true,
            install_dir: dfbtermlibexecdir)
 
-install_symlink('gnome-pty-helper',
-                pointing_to: 'dfbterm-pty-helper',
-                install_dir: dfbtermlibexecdir)
-
 endif
 
 endif
