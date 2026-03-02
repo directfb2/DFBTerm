@@ -1,3 +1,24 @@
+commit c4ff0489efc42a30c752e54b10e57d6bd1159fe0
+Author: Nicolas Caramelli <caramelli.devel@gmail.com>
+Date:   Mon Mar 2 18:50:59 2026 +0100
+
+    libtsm terminal emulation backend: add mouse reporting support
+
+commit f038008916698cb0ffa58416702aa6924c3903df
+Merge: f39b246 0e040a2
+Author: DirectFB2 <80045286+directfb2@users.noreply.github.com>
+Date:   Sun Mar 1 18:26:42 2026 +0100
+
+    Merge pull request #18 from caramelli/master
+    
+    Replace gnome-pty-helper with dfbterm-pty-helper in the bundled libzvt source
+
+commit 0e040a2340eff8a4b4b58ede71f8e58fabbef108
+Author: Nicolas Caramelli <caramelli.devel@gmail.com>
+Date:   Sun Mar 1 18:24:53 2026 +0100
+
+    Update ChangeLog
+
 commit 81b5be4635bac684b244265234c7b4925b0f3092
 Author: Nicolas Caramelli <caramelli.devel@gmail.com>
 Date:   Sun Mar 1 18:24:47 2026 +0100
