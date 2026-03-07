@@ -1,3 +1,24 @@
+commit c6e88e374057030e7b0f521deca63c1edfc66b53
+Author: Nicolas Caramelli <caramelli.devel@gmail.com>
+Date:   Sat Mar 7 20:06:46 2026 +0100
+
+    Add location parameter support to OSC image:
+
+commit 090efcbb71a0b764e0b7560d5cb822e50d0ec5df
+Merge: 9b6948c 3f53973
+Author: DirectFB2 <80045286+directfb2@users.noreply.github.com>
+Date:   Sat Mar 7 12:24:44 2026 +0100
+
+    Merge pull request #20 from caramelli/master
+    
+    Add support for OSC image:file=...
+
+commit 3f53973f7107313773bb5aa9acaea420593afcad
+Author: Nicolas Caramelli <caramelli.devel@gmail.com>
+Date:   Sat Mar 7 12:22:38 2026 +0100
+
+    Update ChangeLog
+
 commit 76f99cacdd6ca82f8300a4ae7eb82ca9360ea902
 Author: Nicolas Caramelli <caramelli.devel@gmail.com>
 Date:   Sat Mar 7 12:22:12 2026 +0100
