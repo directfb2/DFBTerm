@@ -60,6 +60,7 @@ typedef struct {
      int                         selected;
      int                         selectiontype;
      IDirectFBSurface           *image;
+     int                         image_x, image_y;
 #else
      struct _vtx                *vtx;
 #endif
@@ -131,6 +132,7 @@ static void term_flush_flip( Term *term )
      if (!term->flip_pending)
           return;
 
+#ifdef USE_LIBTSM
      if (term->image) {
           int          image_width, image_height;
           DFBRectangle rect;
@@ -152,8 +154,8 @@ static void term_flush_flip( Term *term )
                rect.h = image_height;
           }
 
-          rect.x = (term->width  - rect.w) >> 1;
-          rect.y = (term->height - rect.h) >> 1;
+          rect.x = term->image_x >= 0 ? term->image_x : (term->width  - rect.w) >> 1;
+          rect.y = term->image_y >= 0 ? term->image_y : (term->height - rect.h) >> 1;
 
           term->surface->StretchBlit( term->surface, term->image, NULL, &rect );
 
@@ -163,6 +165,7 @@ static void term_flush_flip( Term *term )
           term->image->Release( term->image );
           term->image = NULL;
      }
+#endif
 
      term->surface->Flip( term->surface, &term->flip_region,
                           getenv( "LITE_WINDOW_DOUBLEBUFFER" ) ? DSFLIP_BLIT : DSFLIP_NONE );
@@ -185,18 +188,38 @@ static void tsm_vte_osc( struct tsm_vte* vte, const char *osc, size_t len, void 
 {
      Term *term = user_data;
 
-     if (!strncmp( osc, "image:file=", 11 )) {
-          DFBSurfaceDescription   desc;
-          IDirectFBImageProvider *image_provider;
-          IDirectFB              *dfb = lite_get_dfb_interface();
+     if (!strncmp( osc, "image:", 6 )) {
+          osc += 6;
 
-          if (dfb->CreateImageProvider( dfb, osc + 11, &image_provider ))
-               return;
+          term->image_x = term->image_y = -1;
 
-          image_provider->GetSurfaceDescription( image_provider, &desc );
-          dfb->CreateSurface( dfb, &desc, &term->image );
-          image_provider->RenderTo( image_provider, term->image, NULL );
-          image_provider->Release( image_provider );
+          while (*osc) {
+               char *delim = strchr( osc, ';' );
+
+               if (delim)
+                   *delim = '\0';
+
+               if (!strncmp( osc, "file=", 5 )) {
+                    DFBSurfaceDescription   desc;
+                    IDirectFBImageProvider *image_provider;
+                    IDirectFB              *dfb = lite_get_dfb_interface();
+
+                    if (dfb->CreateImageProvider( dfb, osc + 5, &image_provider ))
+                         break;
+
+                    image_provider->GetSurfaceDescription( image_provider, &desc );
+                    dfb->CreateSurface( dfb, &desc, &term->image );
+                    image_provider->RenderTo( image_provider, term->image, NULL );
+                    image_provider->Release( image_provider );
+               }
+               else if (!strncmp( osc, "location=", 9 ))
+                    sscanf( osc + 9, "%u,%u", &term->image_x, &term->image_y );
+
+               if (!delim)
+                    break;
+
+               osc = delim + 1;
+          }
      }
 }
 
