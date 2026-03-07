@@ -1,3 +1,24 @@
+commit 76f99cacdd6ca82f8300a4ae7eb82ca9360ea902
+Author: Nicolas Caramelli <caramelli.devel@gmail.com>
+Date:   Sat Mar 7 12:22:12 2026 +0100
+
+    Add support for OSC image:file=...
+
+commit 9b6948cb8da326ba9404faae2545e7054c75bd5e
+Merge: f038008 39bd7be
+Author: DirectFB2 <80045286+directfb2@users.noreply.github.com>
+Date:   Mon Mar 2 18:54:19 2026 +0100
+
+    Merge pull request #19 from caramelli/master
+    
+    libtsm terminal emulation backend: add mouse reporting support
+
+commit 39bd7be38d9dafd65fe3a78c804103544fef0472
+Author: Nicolas Caramelli <caramelli.devel@gmail.com>
+Date:   Mon Mar 2 18:51:11 2026 +0100
+
+    Update ChangeLog
+
 commit c4ff0489efc42a30c752e54b10e57d6bd1159fe0
 Author: Nicolas Caramelli <caramelli.devel@gmail.com>
 Date:   Mon Mar 2 18:50:59 2026 +0100

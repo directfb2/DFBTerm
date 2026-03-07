@@ -17,7 +17,7 @@
 option('emulator',
        type: 'combo',
        choices: ['libtsm', 'libzvt'],
-       value: 'libzvt',
+       value: 'libtsm',
        description: 'Terminal emulation backend')
 
 option('system-libzvt',

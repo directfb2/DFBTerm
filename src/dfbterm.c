@@ -19,6 +19,7 @@
 #include <config.h>
 #include <direct/thread.h>
 #include <directfb.h>
+#include <directfb_util.h>
 #ifdef USE_LIBTSM
 #include <libtsm.h>
 #include <shl-pty.h>
@@ -58,6 +59,7 @@ typedef struct {
      tsm_age_t                   age;
      int                         selected;
      int                         selectiontype;
+     IDirectFBSurface           *image;
 #else
      struct _vtx                *vtx;
 #endif
@@ -126,12 +128,46 @@ static void add_flip( Term *term, DFBRegion *region )
 
 static void term_flush_flip( Term *term )
 {
-     if (term->flip_pending) {
-          term->surface->Flip( term->surface, &term->flip_region,
-                               getenv( "LITE_WINDOW_DOUBLEBUFFER" ) ? DSFLIP_BLIT : DSFLIP_NONE );
+     if (!term->flip_pending)
+          return;
 
-          term->flip_pending = DFB_FALSE;
+     if (term->image) {
+          int          image_width, image_height;
+          DFBRectangle rect;
+          DFBRegion    region;
+
+          term->image->GetSize( term->image, &image_width, &image_height );
+
+          if (image_width > term->width || image_height > term->height) {
+               if (image_width * term->height > image_height * term->width) {
+                    rect.w = term->width;
+                    rect.h = image_height * term->width / image_width;
+               } else {
+                    rect.h = term->height;
+                    rect.w = image_width * term->height / image_height;
+               }
+          }
+          else {
+               rect.w = image_width;
+               rect.h = image_height;
+          }
+
+          rect.x = (term->width  - rect.w) >> 1;
+          rect.y = (term->height - rect.h) >> 1;
+
+          term->surface->StretchBlit( term->surface, term->image, NULL, &rect );
+
+          dfb_region_from_rectangle( &region, &rect );
+          dfb_region_region_union( &term->flip_region, &region );
+
+          term->image->Release( term->image );
+          term->image = NULL;
      }
+
+     term->surface->Flip( term->surface, &term->flip_region,
+                          getenv( "LITE_WINDOW_DOUBLEBUFFER" ) ? DSFLIP_BLIT : DSFLIP_NONE );
+
+     term->flip_pending = DFB_FALSE;
 }
 
 #ifdef USE_LIBTSM
@@ -143,6 +179,25 @@ static void tsm_vte_write( struct tsm_vte* vte, const char *buffer, size_t count
      shl_pty_write( term->pty, buffer, count );
 
      shl_pty_dispatch( term->pty );
+}
+
+static void tsm_vte_osc( struct tsm_vte* vte, const char *osc, size_t len, void *user_data )
+{
+     Term *term = user_data;
+
+     if (!strncmp( osc, "image:file=", 11 )) {
+          DFBSurfaceDescription   desc;
+          IDirectFBImageProvider *image_provider;
+          IDirectFB              *dfb = lite_get_dfb_interface();
+
+          if (dfb->CreateImageProvider( dfb, osc + 11, &image_provider ))
+               return;
+
+          image_provider->GetSurfaceDescription( image_provider, &desc );
+          dfb->CreateSurface( dfb, &desc, &term->image );
+          image_provider->RenderTo( image_provider, term->image, NULL );
+          image_provider->Release( image_provider );
+     }
 }
 
 static int tsm_draw_cell( struct tsm_screen *screen, uint64_t id, const uint32_t *ch, size_t size, uint32_t len,
@@ -1252,6 +1307,8 @@ int main( int argc, char *argv[] )
      }
 
      tsm_screen_set_max_sb( term->screen, TERM_LINES );
+
+     tsm_vte_set_osc_cb( term->vte, tsm_vte_osc, term );
 #else
      term->vtx = vtx_new( termcols, termrows, term );
      if (!term->vtx) {
